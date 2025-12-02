@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.nn import SmoothL1Loss
 import torch.nn.functional as F
-from replay import Experience, ExperienceBuffer, PERBuffer
+from .replay import Experience, ExperienceBuffer, PERBuffer
 
 class DoubleDQNAgent:
     ''' A Double DQN that interacts with and learns from the environment. '''
@@ -193,3 +193,42 @@ class DoubleDQNAgent:
     def update_target_network(self):
         ''' Update target model parameters. '''
         self.q_target.load_state_dict(self.q_local.state_dict())
+
+
+class InferenceQAgent:
+    def __init__(self, 
+                 q_network,
+                 device):
+        ''' 
+        Initialize an InferenceAgent object.
+        
+        Params
+        ======
+            q_local (Module): Trained Q network
+            device: Device for inference
+        '''
+        self.q_network = q_network
+        self.device = device
+        self.q_network.to(device)
+        self.q_network.eval()
+
+
+    def play(self, state, eps=0.):
+        ''' 
+        Returns actions for given state as per current policy.
+        
+        Params
+        ======
+            state (array_like): current state
+            eps (float): epsilon, for epsilon-greedy action selection
+        '''
+        state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+        with torch.no_grad():
+            _, action = torch.max(self.q_network(state), dim=1)
+
+        # Epsilon-greedy action selection
+        x = np.random.random()
+        if x > eps:
+            return int(action.item())
+        else:
+            return np.random.choice([0, 1, 2, 3, 4, 5])

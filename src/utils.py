@@ -4,6 +4,8 @@ from collections import deque
 import gymnasium as gym
 from gymnasium.wrappers.rendering import RecordVideo
 from gymnasium.core import Wrapper
+import ale_py
+import datetime
 
 class FireResetEnv(Wrapper):
     '''FireResentEnv: plays the Fire action and nudges the paddle to start the game'''
@@ -79,6 +81,7 @@ class ProcessFrame84(gym.ObservationWrapper):
 
 def make_training_env(env_name):
     '''Creates the main environment object for training.'''
+    gym.register_envs(ale_py)
     env = gym.make(env_name, render_mode='rgb_array') 
     env = ProcessFrame84(env)
     env = BufferEnv(env)
@@ -86,8 +89,9 @@ def make_training_env(env_name):
 
 def make_testing_env(env_name, model_name=""):
     '''Creates the main environment object for testing. Includes video recording.'''
+    gym.register_envs(ale_py)
     env = gym.make(env_name, render_mode='rgb_array') 
-    env = RecordVideo(env, "recording", name_prefix=f'DQN-{env_name}', episode_trigger=lambda x: True)
+    env = RecordVideo(env, "recording", name_prefix=f'{model_name}_{env_name}_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}', episode_trigger=lambda x: True)
     env = ProcessFrame84(env)
     env = BufferEnv(env)
     return FireResetEnv(env)

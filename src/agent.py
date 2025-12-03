@@ -142,26 +142,14 @@ class DoubleDQNAgent:
             self.buffer.update_priorities(delta, indices)  
 
         if self.run:
-            if self.compute_weights:
-                self.run.log({
-                    "loss"   : loss.item(),
-                    "local_q_max"  : q_max,
-                    "local_q_mean" : q_mean,
-                    "target_q_mean": target_mean.cpu().numpy(),
-                    "rewards": rewards.mean().cpu().numpy(),
-                    "expected_values": ev_mean.cpu().numpy(),
-                    "per_delta_mean": delta.mean(),
-                    "per_delta_max": delta.max()
-                })
-            else:
-                self.run.log({
-                    "loss"   : loss.item(),
-                    "local_q_max"  : q_max,
-                    "local_q_mean" : q_mean,
-                    "target_q_mean": target_mean.cpu().numpy(),
-                    "rewards": rewards.mean().cpu().numpy(),
-                    "expected_values": ev_mean.cpu().numpy(),
-                })
+            self.run.log({
+                "loss"   : loss.item(),
+                "local_q_max"  : q_max,
+                "local_q_mean" : q_mean,
+                "target_q_mean": target_mean.cpu().numpy(),
+                "rewards": rewards.mean().cpu().numpy(),
+                "expected_values": ev_mean.cpu().numpy(),
+            })
             
         return loss.item()
 

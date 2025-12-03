@@ -26,14 +26,14 @@ class ExperienceBuffer:
                np.array(next_states), np.array(dones, dtype=bool)
 
 class PERBuffer:
-    def __init__(self, capacity, min_priority=0.01):
+    def __init__(self, capacity, alpha, beta, beta_growth,min_priority=0.01):
         self.buffer = deque(maxlen=capacity)
         self.capacity = capacity
         self.priorities = []
-        self.min_priority=0.01
-        self.alpha=0.5
-        self.beta=0.1
-        self.beta_growth=1.00001
+        self.min_priority=min_priority
+        self.alpha=alpha
+        self.beta=beta
+        self.beta_growth=beta_growth
 
     def __len__(self):
         return len(self.buffer)

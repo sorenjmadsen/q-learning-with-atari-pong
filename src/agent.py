@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torch.nn import SmoothL1Loss
 import torch.nn.functional as F
 from .replay import Experience, ExperienceBuffer, PERBuffer
 
@@ -58,6 +57,7 @@ class DoubleDQNAgent:
         self.buffer = buffer
         self.compute_weights = isinstance(self.buffer, PERBuffer)
         if self.compute_weights:
+            print('Using PERBuffer')
             self.update_priority_step = 0
 
         # Update params

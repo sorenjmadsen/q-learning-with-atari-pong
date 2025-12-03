@@ -1,6 +1,6 @@
 training:
   architecture: DoubleDQN
-  device: mps
+  device: cuda
   environment_id: PongNoFrameskip-v4
   learning_rate: 0.00025
   gamma: 0.99

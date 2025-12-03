@@ -1,14 +1,16 @@
 import numpy as np
 import time
 import torch
-import torch.optim as optim
 from collections import deque
-from src.utils import make_training_env
-from src.network import QNetwork
-from src.agent import DoubleDQNAgent
-from src.replay import ExperienceBuffer
+from pathlib import Path
+from omegaconf import OmegaConf
+from src.utils import make_training_env, initialize_double_dqn_agent
 
-def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, verbose=False):
+from torch.nn import SmoothL1Loss
+from src.replay import ExperienceBuffer, PERBuffer
+
+
+def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, verbose=False, run=None):
     '''
     Deep Q-Learning.
     
@@ -27,8 +29,8 @@ def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end
     scores_window = deque(maxlen=100)  # last 100 scores
     losses_window = deque(maxlen=100)
     eps = eps_start                    # initialize epsilon
-    start_time = time.time()
     total_steps = 0
+    print(f'Training agent on {n_episodes} episodes...')
     for i in range(1, n_episodes+1):
         state = env.reset()
         score = 0
@@ -50,6 +52,7 @@ def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end
         losses.append(loss)
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
 
+        print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(scores_window)))
         if (i % 100 == 0) and verbose:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(scores_window)))
             elapsed_time = time.time() - start_time
@@ -57,58 +60,95 @@ def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end
         if np.mean(scores_window)>=19.5:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i-100, np.mean(scores_window)))
             break
+    return agent, scores
 
-    torch.save(agent.q_local.state_dict(), f'{type(agent)}_checkpoint.pth')
+if __name__ == '__main__':
+    CONFIG_PATH = Path(__file__).with_name('config.yaml')
+    file_config = OmegaConf.load(CONFIG_PATH) if CONFIG_PATH.exists() else OmegaConf.create()
+    cli_config = OmegaConf.from_cli()
+    config = OmegaConf.merge(file_config, cli_config)
+
+    training_config = config.get('training', {})
+    epsilon_config = training_config.get('epsilon', {})
+    buffer_config = training_config.get('buffer', {})
+    wandb_config = training_config.get('wandb_config', {})
+
+    architecture = training_config.get('architecture', 'DoubleDQN')
+    environment_id = training_config.get('environment_id', 'PongNoFrameskip-v4')
+    device = training_config.get('device', 'cpu')
+    lr = training_config.get('learning_rate', 2.5e-4)
+    gamma = training_config.get('gamma', 0.99)
+    batch_size = training_config.get('batch_size', 32)
+    target_update = training_config.get('target_update', 5_000)
+    buffer_type = training_config.get('buffer_type', 'ExperienceReplay')
+
+    min_buffer_size = buffer_config.get('min_buffer_size', 5_000)
+    buffer_capacity = buffer_config.get('buffer_capacity', 100_000)
+    per_priority_update = -1 # Won't be triggered for an ExperienceBuffer
+    if buffer_type == 'PERBuffer':
+        per_config = training_config.get('buffer', {})
+        per_min_priority = per_config.get('min_priority', 0.01)
+        per_alpha = per_config.get('alpha', 0.5)
+        per_beta = per_config.get('beta', 0.5)
+        per_beta_growth = per_config.get('beta_growth', 1.00001)
+        per_priority_update = per_config.get('per_update', 20)
+
+    max_training_episodes = training_config.get('max_episodes', 2_000)
+    max_steps_per_episode = training_config.get('max_steps_per_episode', 10_000)
+
+    eps_start = epsilon_config.get('start', 1.0)
+    eps_end = epsilon_config.get('end', 0.01)
+    eps_decay = epsilon_config.get('decay', 0.995)
+    verbose = training_config.get('verbose', False)
+    use_wandb = training_config.get('use_wandb', False)
+
+    criterion=SmoothL1Loss()
+
+    assert(buffer_type == 'ExperienceBuffer' or buffer_type == 'PERBuffer')
+
+    wandb_run = None
+    if use_wandb:
+        import wandb
+        wandb_run = wandb.init(
+            entity=wandb_config.get('entity_name', ''),
+            # Set the wandb project where this run will be logged.
+            project=f"{architecture}-{buffer_type}-{environment_id}",
+            # Track hyperparameters and run metadata.
+            config=training_config
+        )
+
+    train_env = make_training_env(environment_id)
+
+    if buffer_type == 'ExperienceBuffer':
+        buffer = ExperienceBuffer(capacity=buffer_capacity)
+    elif buffer_type == 'PERBuffer':
+        buffer = PERBuffer(capacity=buffer_capacity,
+                           min_priority=per_min_priority,
+                           alpha=per_alpha,
+                           beta=per_beta,
+                           beta_growth=per_beta_growth)
+        
+    agent = initialize_double_dqn_agent(train_env=train_env,
+                                        learning_rate=lr, 
+                                        buffer=buffer, 
+                                        device=device, 
+                                        min_buffer_size=min_buffer_size,
+                                        priority_update=per_priority_update,
+                                        gamma=gamma,
+                                        batch_size=batch_size,
+                                        target_update=target_update,
+                                        criterion=criterion,
+                                        wandb_run=wandb_run)
+    
+    start_time = time.time()
+    agent, scores = train_agent(agent, 
+                                train_env, 
+                                n_episodes=max_training_episodes, 
+                                max_t=max_steps_per_episode,
+                                eps_start=eps_start,
+                                eps_end=eps_end,
+                                eps_decay=eps_decay,
+                                verbose=verbose)
     elapsed_time = time.time() - start_time
+    torch.save(agent.q_local.state_dict(), f'{architecture}-{buffer_type}-{environment_id}-final.pth')
     print("Training duration: ", elapsed_time)
-    return scores
-
-# TODO: Move to config.yaml
-device = "mps"
-lr = 2.5e-4
-gamma = 0.99
-batch_size = 32
-target_update = 5_000
-min_buffer_size = 5_000
-buffer_capacity = 100_000
-max_training_episodes = 2_500
-max_steps_per_episode=10_000
-eps_start=1
-eps_end=0.02
-eps_decay = 0.995
-verbose=False
-
-train_env = make_training_env('PongNoFrameskip-v4')
-
-buffer = ExperienceBuffer(capacity=buffer_capacity)
-
-input_shape =  train_env.reset().shape
-action_size = train_env.action_space.n
-
-q_local = QNetwork(input_shape=input_shape, action_size=action_size)
-q_target = QNetwork(input_shape=input_shape, action_size=action_size)
-
-optimizer = optim.Adam(q_local.parameters(), lr=lr)
-
-action_size = train_env.action_space.n
-agent = DoubleDQNAgent( buffer,
-                        q_local, 
-                        q_target, 
-                        optimizer,
-                        device,
-                        min_buffer_size,
-                        gamma, 
-                        batch_size,
-                        target_update, 
-                        priority_update=None,
-                        compute_weights=False,
-                        wandb_run=None)
-
-scores = train_agent(   agent, 
-                        train_env, 
-                        n_episodes=max_training_episodes, 
-                        max_t=max_steps_per_episode,
-                        eps_start=eps_start,
-                        eps_end=eps_end,
-                        eps_decay=eps_decay,
-                        verbose=verbose)

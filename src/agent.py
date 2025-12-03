@@ -12,13 +12,12 @@ class DoubleDQNAgent:
                  q_target, 
                  optimizer,
                  device,
-                 min_buffer_size=5_000,
-                 gamma=0.99, 
-                 batch_size=32,
-                 target_update=5000, 
-                 priority_update=20,
-                 criterion=SmoothL1Loss(),
-                 compute_weights=False,
+                 min_buffer_size,
+                 priority_update,
+                 gamma, 
+                 batch_size,
+                 target_update, 
+                 criterion,
                  wandb_run=None):
         ''' 
         Initialize an Agent object.
@@ -31,12 +30,11 @@ class DoubleDQNAgent:
             optimizer (Optimizer): Optimizer to use for training
             device (str): Device for training
             min_buffer_size (int): Minimum size of buffer to start training (default: 5,000)
+            priority_update (int): Number of steps to take between priority weighting updates (optional, default: 20)
             gamma (float): Reward discount (default: 0.99) 
             batch_size (int): Number of samples per batch during train_samples (default: 32)
             target_update (int): Number of steps to take between target network updates (default: 5000) 
-            priority_update (int): Number of steps to take between priority weighting updates (default: 20)
             criterion (Loss): Loss function to optimize (default: SmoothL1Loss())
-            compute_weights (bool): use PER if true, Experience Buffer if false.
             wandb_run: Track your experiment with a Weights & Biases run (default: None)
         '''
         self.device = device
@@ -58,12 +56,9 @@ class DoubleDQNAgent:
 
         # Replay memory
         self.buffer = buffer
-        self.compute_weights = compute_weights
-        if compute_weights:
-            assert(isinstance(self.buffer, PERBuffer))
+        self.compute_weights = isinstance(self.buffer, PERBuffer)
+        if self.compute_weights:
             self.update_priority_step = 0
-        else:
-            assert(isinstance(self.buffer, ExperienceBuffer))
 
         # Update params
         self.update_network_step = 0
@@ -84,7 +79,7 @@ class DoubleDQNAgent:
 
             # Train on batch and (possibly update priority weights)
             samples = self.buffer.sample(self.batch_size)
-            loss = self.train_samples(samples, verbose, run)
+            loss = self.train_samples(samples)
 
             # Update target network
             if self.update_network_step == 0:

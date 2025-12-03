@@ -7,6 +7,10 @@ from gymnasium.core import Wrapper
 import ale_py
 import datetime
 
+import torch.optim as optim
+from src.network import QNetwork
+from src.agent import DoubleDQNAgent
+
 class FireResetEnv(Wrapper):
     '''FireResentEnv: plays the Fire action and nudges the paddle to start the game'''
     def __init__(self, env=None):
@@ -95,3 +99,36 @@ def make_testing_env(env_name, model_name=""):
     env = ProcessFrame84(env)
     env = BufferEnv(env)
     return FireResetEnv(env)
+
+def initialize_double_dqn_agent(train_env,
+                                learning_rate, 
+                                buffer, 
+                                device, 
+                                min_buffer_size,
+                                priority_update,
+                                gamma,
+                                batch_size,
+                                target_update,
+                                criterion,
+                                wandb_run):
+    
+    input_shape =  train_env.reset().shape
+    action_size = train_env.action_space.n
+    q_local = QNetwork(input_shape=input_shape, action_size=action_size)
+    q_target = QNetwork(input_shape=input_shape, action_size=action_size)
+
+    optimizer = optim.Adam(q_local.parameters(), lr=learning_rate)
+
+    agent = DoubleDQNAgent( buffer=buffer,
+                            q_local=q_local, 
+                            q_target=q_target, 
+                            optimizer=optimizer,
+                            device=device,
+                            min_buffer_size=min_buffer_size,
+                            priority_update=priority_update,
+                            gamma=gamma, 
+                            batch_size=batch_size,
+                            target_update=target_update, 
+                            criterion=criterion,
+                            wandb_run=wandb_run)
+    return agent

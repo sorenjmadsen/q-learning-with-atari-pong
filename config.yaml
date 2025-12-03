@@ -1,0 +1,28 @@
+training:
+  architecture: DoubleDQN
+  device: mps
+  environment_id: PongNoFrameskip-v4
+  learning_rate: 0.00025
+  gamma: 0.99
+  batch_size: 32
+  target_update: 5000
+  buffer_type: ExperienceBuffer # ExperienceBuffer or PERBuffer
+  buffer:
+    min_buffer_size: 5000
+    buffer_capacity: 100000
+  per_buffer:             # Only for PERBuffer
+    min_priority: 0.01
+    alpha: 0.5 
+    beta: 0.5  
+    beta_growth: 1.00001
+    per_update: 20
+  max_episodes: 2500
+  max_steps_per_episode: 10000
+  epsilon:
+    start: 1.0
+    end: 0.02
+    decay: 0.995
+  verbose: false
+  use_wandb: false
+  wandb_config:
+    entity_name: REPLACE # Replace with your own entity name for Weights & Biases

@@ -11,10 +11,10 @@ training:
     min_buffer_size: 5000
     buffer_capacity: 100000
   per_buffer:             # Only for PERBuffer
-    min_priority: 0.01
-    alpha: 0.5 
-    beta: 0.5  
-    beta_growth: 1.00001
+    min_priority: 0.1
+    alpha: 0.6
+    beta: 0.4 
+    beta_growth: 1.00005
     per_update: 20
   max_episodes: 2500
   max_steps_per_episode: 10000

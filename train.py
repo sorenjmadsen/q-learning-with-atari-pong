@@ -30,7 +30,6 @@ def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end
     losses_window = deque(maxlen=100)
     eps = eps_start                    # initialize epsilon
     total_steps = 0
-    print(f'Training agent on {n_episodes} episodes...')
     for i in range(1, n_episodes+1):
         state = env.reset()
         score = 0
@@ -52,13 +51,14 @@ def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end
         losses.append(loss)
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
 
-        print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(scores_window)))
+        if verbose: 
+            print('\rEpisode {}\tAverage Score: {:.2f}\tLoss: {:.4f}\tTotal Steps: {}'.format(i, np.mean(scores_window), loss / t, total_steps))
         if (i % 100 == 0) and verbose:
-            print('\rEpisode {}\tAverage Score: {:.2f}'.format(i, np.mean(scores_window)))
             elapsed_time = time.time() - start_time
-            print("Duration: ", elapsed_time)
+            print("\tDuration: ", elapsed_time)
+
         if np.mean(scores_window)>=19.5:
-            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i-100, np.mean(scores_window)))
+            print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i, np.mean(scores_window)))
             break
     return agent, scores
 
@@ -102,7 +102,10 @@ if __name__ == '__main__':
     verbose = training_config.get('verbose', False)
     use_wandb = training_config.get('use_wandb', False)
 
-    criterion=SmoothL1Loss()
+    criterion=SmoothL1Loss() # used in the Deepmind paper, less sensitive to outliers
+
+    if device == 'gpu': assert(torch.cuda.is_available())
+    elif device == 'mps': assert(torch.backends.mps.is_available())
 
     assert(buffer_type == 'ExperienceBuffer' or buffer_type == 'PERBuffer')
 
@@ -141,6 +144,12 @@ if __name__ == '__main__':
                                         wandb_run=wandb_run)
     
     start_time = time.time()
+    print('=======================================')
+    print(f'Training agent on {environment_id}...')
+    print(f'|--- episodes:  {max_training_episodes}')
+    print(f'|--- max steps: {max_steps_per_episode}')
+    print(f'|--- device:    {device}')
+    print('=======================================')
     agent, scores = train_agent(agent, 
                                 train_env, 
                                 n_episodes=max_training_episodes, 
@@ -150,5 +159,6 @@ if __name__ == '__main__':
                                 eps_decay=eps_decay,
                                 verbose=verbose)
     elapsed_time = time.time() - start_time
+    agent.q_local.to('cpu') # Had some serialization issues on non-MacOS devices (for mps backend) if I don't move back to CPU first
     torch.save(agent.q_local.state_dict(), f'{architecture}-{buffer_type}-{environment_id}-final.pth')
     print("Training duration: ", elapsed_time)

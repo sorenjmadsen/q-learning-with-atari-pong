@@ -26,3 +26,7 @@ training:
   use_wandb: false
   wandb_config:
     entity_name: REPLACE # Replace with your own entity name for Weights & Biases
+evaluation:
+  device: mps
+  environment_id: PongNoFrameskip-v4
+  weights_path: checkpoints/replay-checkpoint.pth

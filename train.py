@@ -8,6 +8,7 @@ from src.utils import make_training_env, initialize_double_dqn_agent
 
 from torch.nn import SmoothL1Loss
 from src.replay import ExperienceBuffer, PERBuffer
+import datetime
 
 
 def train_agent(agent, env, n_episodes=2000, max_t=10000, eps_start=1.0, eps_end=0.01, eps_decay=0.995, verbose=False, run=None):
@@ -162,5 +163,5 @@ if __name__ == '__main__':
                                 verbose=verbose)
     elapsed_time = time.time() - start_time
     agent.q_local.to('cpu') # Had some serialization issues on non-MacOS devices (for mps backend) if I don't move back to CPU first
-    torch.save(agent.q_local.state_dict(), f'{architecture}-{buffer_type}-{environment_id}-final.pth')
+    torch.save(agent.q_local.state_dict(), f'{architecture}-{buffer_type}-{environment_id}-final-_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.pth')
     print("Training duration: ", elapsed_time)

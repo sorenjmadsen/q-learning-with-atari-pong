@@ -91,6 +91,7 @@ class DoubleDQNAgent:
         ''' Update value parameters using given batch of experience tuples. '''
         if self.compute_weights:
             states, actions, rewards, next_states, dones, indices, weights = sample
+            print(rewards.shape, next_states.shape, dones.shape)
         else:
             states, actions, rewards, next_states, dones = sample
 
@@ -99,6 +100,7 @@ class DoubleDQNAgent:
         rewards = torch.from_numpy(rewards).float().to(self.device).unsqueeze(1)
         next_states = torch.from_numpy(next_states).float().to(self.device)
         dones = torch.from_numpy(dones).to(self.device).unsqueeze(1)
+        
        
         with torch.no_grad():
             next_actions = self.q_local(next_states).argmax(dim=1, keepdim=True)

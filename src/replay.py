@@ -26,41 +26,44 @@ class ExperienceBuffer:
                np.array(next_states), np.array(dones, dtype=bool)
 
 class PERBuffer:
-    def __init__(self, capacity, min_priority=0.01, alpha=0.5, beta=0.5, beta_growth=1.00001):
-        """
-        Initialize a Prioritxed Experience Replay buffer.
-
-        Params:
-            capacity (int): Maximum size of the buffer
-            min_priority (float): Minimum sample priority
-            alpha (float): Determines the strength of priority weighting
-            beta (float): Initial beta value, determines initial strength of priority weighting
-            beta_growth (float): Beta growth factor, determines how quickly correction kicks in
-        """
+    def __init__(self, capacity, min_priority=0.01):
         self.buffer = deque(maxlen=capacity)
-        self.priorities = deque(maxlen=capacity)
-        self.min_priority=min_priority
-        self.alpha=alpha
-        self.beta=beta
-        self.beta_growth=beta_growth
+        self.capacity = capacity
+        self.priorities = []
+        self.min_priority=0.01
+        self.alpha=0.5
+        self.beta=0.1
+        self.beta_growth=1.00001
 
     def __len__(self):
         return len(self.buffer)
 
     def add(self, experience):
         self.buffer.append(experience)
-        self.priorities.append(self.min_priority ** self.alpha)
+        
+        if len(self.priorities) < self.capacity:
+            self.priorities.append(self.min_priority ** self.alpha)
+        else:
+            self.priorities.pop(0)
+            self.priorities.append(self.min_priority ** self.alpha)
 
     def update_priorities(self, deltas, indices):
         self.beta *= self.beta_growth
-        self.beta = np.min(self.beta, 1)
+        self.beta = min(self.beta, 1)
+
         for d, i in zip(deltas, indices):
-            self.priorities[i] = d ** self.alpha
+            # Convert priority to a scalar float
+            priority = float(abs(d) + 1e-6) ** self.alpha
+            self.priorities[i] = priority
+
 
     def sample(self, batch_size):
         probs = np.array(self.priorities) / np.sum(self.priorities)
-        weights = np.float_power(((1/len(self.buffer))*(1 / np.array(self.priorities))),self.beta)
+        preweights =((1/len(self.buffer))*(1 / np.array(self.priorities)))
+        
         indices = np.random.choice(len(self.buffer), batch_size, replace=False, p=probs)
-        states, actions, rewards, dones, next_states = zip(*[self.buffer[idx] for idx in indices])
+        weights = np.float_power(preweights,self.beta)[indices]
+        weights = weights / (weights.max() + 1e-12)
+        states, actions, rewards, next_states, dones = zip(*[self.buffer[idx] for idx in indices])
         return np.array(states), np.array(actions), np.array(rewards, dtype=np.float32), \
                np.array(next_states), np.array(dones, dtype=bool),  indices, weights

@@ -125,7 +125,7 @@ class DoubleDQNAgent:
             weights_tensor = torch.from_numpy(weights).float().to(self.device).unsqueeze(1)
 
             # Apply importance sampling weights to individual losses
-            elementwise_loss = self.criterion(output, expected_values, reduction='none')
+            elementwise_loss = F.smooth_l1_loss(output, expected_values, reduction='none')
             loss = (elementwise_loss * weights_tensor).mean()
         else:
             loss = self.criterion(output, expected_values)

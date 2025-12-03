@@ -91,7 +91,6 @@ class DoubleDQNAgent:
         ''' Update value parameters using given batch of experience tuples. '''
         if self.compute_weights:
             states, actions, rewards, next_states, dones, indices, weights = sample
-            print(rewards.shape, next_states.shape, dones.shape)
         else:
             states, actions, rewards, next_states, dones = sample
 

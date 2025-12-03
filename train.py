@@ -104,8 +104,10 @@ if __name__ == '__main__':
 
     criterion=SmoothL1Loss() # used in the Deepmind paper, less sensitive to outliers
 
-    if device == 'gpu': assert(torch.cuda.is_available())
-    elif device == 'mps': assert(torch.backends.mps.is_available())
+    if device == 'gpu' and not torch.cuda.is_available():
+        raise ValueError('GPU is requested but no GPU available')
+    elif device == 'mps' and not torch.backends.mps.is_available():
+        raise ValueError('MPS is requested but no MPS available')
 
     assert(buffer_type == 'ExperienceBuffer' or buffer_type == 'PERBuffer')
 

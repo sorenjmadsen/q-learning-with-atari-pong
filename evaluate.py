@@ -20,8 +20,7 @@ test_env = make_testing_env(environment_id, model_name=os.path.split(weights_pat
 observation = test_env.reset()
 
 q_network = QNetwork(input_shape=observation.shape, action_size=test_env.action_space.n)
-q_network.load_state_dict(torch.load(weights_path, weights_only=True, map_location=device))
-
+q_network.load_state_dict(torch.load(weights_path, weights_only=True))
 agent = InferenceQAgent(q_network=q_network, device=device)
 
 done = False

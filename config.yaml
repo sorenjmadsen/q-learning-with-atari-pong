@@ -4,7 +4,7 @@ training:
   environment_id: PongNoFrameskip-v4
   learning_rate: 0.00025
   gamma: 0.99
-  batch_size: 32
+  batch_size: 128
   target_update: 5000
   buffer_type: ExperienceBuffer # ExperienceBuffer or PERBuffer
   buffer:
@@ -27,6 +27,6 @@ training:
   wandb_config:
     entity_name: sorenjmadsen # Replace with your own entity name for Weights & Biases
 evaluation:
-  device: mps
+  device: cuda
   environment_id: PongNoFrameskip-v4
   weights_path: checkpoints/replay-checkpoint.pth

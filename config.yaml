@@ -22,10 +22,10 @@ training:
     start: 1.0
     end: 0.02
     decay: 0.995
-  verbose: false
-  use_wandb: false
+  verbose: true
+  use_wandb: true
   wandb_config:
-    entity_name: REPLACE # Replace with your own entity name for Weights & Biases
+    entity_name: sorenjmadsen # Replace with your own entity name for Weights & Biases
 evaluation:
   device: mps
   environment_id: PongNoFrameskip-v4

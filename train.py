@@ -165,4 +165,5 @@ if __name__ == '__main__':
     elapsed_time = time.time() - start_time
     agent.q_local.to('cpu') # Had some serialization issues on non-MacOS devices (for mps backend) if I don't move back to CPU first
     torch.save(agent.q_local.state_dict(), os.path.join('checkpoints', f'{architecture}-{buffer_type}-{environment_id}-final-_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.pth'))
+    print('Saved model to:', os.path.join('checkpoints', f'{architecture}-{buffer_type}-{environment_id}-final-_{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.pth'))
     print("Training duration: ", elapsed_time)

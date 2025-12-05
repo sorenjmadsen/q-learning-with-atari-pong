@@ -29,4 +29,4 @@ training:
 evaluation:
   device: cuda
   environment_id: PongNoFrameskip-v4
-  weights_path: checkpoints/replay-checkpoint.pth
+  weights_path: checkpoints/DoubleDQN-ExperienceBuffer-PongNoFrameskip-v4-final.pth

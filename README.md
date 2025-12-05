@@ -1,0 +1,55 @@
+# Q-Learning with Atari Pong
+
+I developed a fascination for teaching computers to learn from environments. This is my foray into learning about the foundations of deep RL. For my experiments, I implemented a Double DQN from the original DeepMind paper (with some small tweaks).
+
+## Quickstart
+
+There's a `requirements.txt`, so just run `pip install -r requirements.txt` in whatever environment you are using. As a side note: I ran my repo on RunPod, and there was weird conflict with the previously installed version of `pyparsing` on the Pod. I managed to circumvent this with `pip install -r requirements.txt --ignore-installed pyparsing`.
+
+### Training
+
+To train, just run :
+```python train.py```
+to run with a replay buffer and the default hyperparameters in `config.yaml`.
+
+### Evaluation
+
+To evaluate the pretrained model weights just run:
+```python evaluate.py```
+or if you want to run with your own weights:
+```python evaluate.py evaluation.weights_path=path/to/weights.pth```
+
+When running evaluation, the testing environment will output a video into `recording/` for those of you that like to watch.
+
+**You can also adjust the hyperparameters from the CLI.** It's as simple as a dot reference argument passed to the command. For example, you can adjust the batch size during training with:
+
+```python train.py training.batch_size=64```
+
+Check out the docs for OmegaConf for more information.
+
+## Some Notes on Minor Tweaks
+I was prototyping on my laptop for a while, so I adjusted the feature extraction portion of the network a little bit. The original paper had only 3 convolutions wither filters: 32, 64, 64. I adjusted to 32, 64, 128, 128 to make the linear layers a little bit smaller. This made prototyping and debugging a lot easier. 
+
+Additionally, the Prioritized Experience Replay buffer uses multiplicative growth for annealing `beta` rather than linear steps. This made sense to me when I designed the class because I didn't need to keep track of a linear step. I might change this in future iterations.
+
+## Things I Learned
+
+1. Perhaps, the most unintuitive finding from my work is in regards to batch size. Larger batch sizes do not seem to improve learning. This [paper](https://openreview.net/pdf?id=wPqEvmwFEh) seems to suggest that Pong tends to favor smaller batches. 
+
+2. Prioritized Experience Replay is hard to tune. Pong may be too simple of an environment to see a strong advantage from the implementation.
+
+3. Debugging your own work is the best way to get intimately acquainted with the algorithms. I first embarked on this project 3 years ago, and I never finished (nothing ever converged). In the last few weeks, I've facepalmed so many times that I think I'm starting to iron out my forehead wrinkles. As an example, I leared to ALWAYS CHECK THE OBSERVATIONS YOU PASS TO YOUR MODEL. I found that my `ExperienceBuffer` and `PERBuffer` classes had mixed up the return order of `states, actions, rewards, next_states, dones`. This turned `next_states` into booleans. It turns out that it's pretty hard to determine the expected values of an observation state that falls out of the training distribution (/s). 
+
+4. I wish I had the compute resources of DeepMind circa 2015. I can only imagine what they've got now with all those Ironwoods.
+
+5. I am fascinated by the plethora of different reinforcement learning algorithms. So far, the off-policy algorithms make the most sense to me, but I am eager to implement PPO or A2C. Keep an eye out for updates.
+
+## Setup
+
+### Hardware
+
+I did a ton of prototyping on my laptop (MacBook Air M2), but I decided that I wanted to also use it for other things. This inspired me to spin up a RunPod, but I'm stingy so I went for their cheapest option: the RTX 4000 Ada. This let me run 2-3 experiments at a time (RAM constrained).
+
+### Gynamsium Environments
+
+I noticed that a basic replay buffer seems to be the fastest to converge to an average score above 19.5, but PERBuffer never quite got all the way there. I tried both flavors of replay buffer on two variants of Pong: `Pong-v4` and `PongNoFrameskip-v4`. So far, `Pong-v4` seems to take longer for full convergence \(although it does start to win\). More results to come. 

@@ -56,10 +56,16 @@ I noticed that a basic replay buffer seems to be the fastest to converge to an a
 
 ## Results
 
-Overall, I'm happy that all the models eventually learned to win. I would have loved to see higher performance on `Pong-v4` with the similar architecture. Despite the lack in performance, the videos show that the models exhibit some very interesting behavior. Both of the models trained on the two flavors of replay buffer seem to have found an optimal paddle location for winning. By placing the paddle a bit below halfway on the vertical axis, it seems that there's a good chance to win the game. Of course, when the ball goes elsewhere, the point is lost. Check them out in `recording/`! They made me crack up.
+Overall, I'm happy that all the models eventually learned to win. I would have loved to see higher performance on `Pong-v4` with the similar architecture. Given the faster pace of the environment, it would make sense that each episode has fewer steps and therefore fewer training steps. However, doubling the maximum number of episodes did not help, and there's no clear upward trend after an average score of around 10. Despite the lack in performance, the videos show that the models exhibit some very interesting behavior. Both of the models trained on the two flavors of replay buffer seem to have found an optimal paddle location for winning. By placing the paddle a bit below halfway on the vertical axis, it seems that there's a good chance to win the game. Of course, when the ball goes elsewhere, the point is lost. Check them out in `recording/`! They made me crack up.
 
 Here's some of the training curves that I saw:
 
 ![Average Score over Training Episodes](plots/figures/AverageScores.png)
+
+### Q-Value Inspection
+
+During the training process, I decided to save the batch-average local and target network Q-values. This allowed me to check out how each of the Q-networks was learning. I decided to compare the localt network training Q-values 4 different training runs, and I found that the `Pong-v4` Q-functions seem to be overestimating. Additionally, this plot does seem to show the significant training time variation. Despite that piece, the estimated Q-values seem to be much larger for `Pong-v4` than `Pong-NoFrameskip-v4`.
+
+![Average Batch Local Network Q-Value over Training Steps](plots/figures/Q-Values.png)
 
 More experimentation is necessary to figure out why `Pong-v4` was not as successful. My intuition is to say that repeating an action for 4 steps is not ideal in this environment. While it made sense in the `Pong-NoFrameskip-v4` case, the paces of these two environments differ greatly. 

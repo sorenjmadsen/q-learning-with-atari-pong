@@ -27,6 +27,6 @@ training:
   wandb_config:
     entity_name: sorenjmadsen # Replace with your own entity name for Weights & Biases
 evaluation:
-  device: cuda
+  device: mps
   environment_id: PongNoFrameskip-v4
   weights_path: checkpoints/DoubleDQN-ExperienceBuffer-PongNoFrameskip-v4-final.pth

@@ -56,7 +56,7 @@ I noticed that a basic replay buffer seems to be the fastest to converge to an a
 
 ## Results
 
-Overall, I'm happy that all the models eventually learned to win. I would have loved to see higher performance on `Pong-v4` with the similar architecture. Despite the lack in performance, the videos show that the models exhibit some very interesting behavior. Both of the models trained on the two flavors of replay buffer seem to have found an optimal paddle location for winning. By placing the paddle a bit below halfway on the vertical axis, it seems that there's a good chance to win the game. Of course, when the ball goes elsewhere, the point is lost. Check them out in `recordings/`! They made me crack up.
+Overall, I'm happy that all the models eventually learned to win. I would have loved to see higher performance on `Pong-v4` with the similar architecture. Despite the lack in performance, the videos show that the models exhibit some very interesting behavior. Both of the models trained on the two flavors of replay buffer seem to have found an optimal paddle location for winning. By placing the paddle a bit below halfway on the vertical axis, it seems that there's a good chance to win the game. Of course, when the ball goes elsewhere, the point is lost. Check them out in `recording/`! They made me crack up.
 
 Here's some of the training curves that I saw:
 

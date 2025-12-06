@@ -52,4 +52,14 @@ I did a ton of prototyping on my laptop (MacBook Air M2), but I decided that I w
 
 ### Gynamsium Environments
 
-I noticed that a basic replay buffer seems to be the fastest to converge to an average score above 19.5, but PERBuffer never quite got all the way there. I tried both flavors of replay buffer on two variants of Pong: `Pong-v4` and `PongNoFrameskip-v4`. So far, `Pong-v4` seems to take longer for full convergence \(although it does start to win\). More results to come. 
+I noticed that a basic replay buffer seems to be the fastest to converge to an average score above 19.5, but PERBuffer never quite got all the way there. I tried both flavors of replay buffer on two variants of Pong: `Pong-v4` and `PongNoFrameskip-v4`. In total, `Pong-v4` seems to take longer for full convergence \(although it does start to win more frequently\). 
+
+## Results
+
+Overall, I'm happy that all the models eventually learned to win. I would have loved to see higher performance on `Pong-v4` with the similar architecture. Despite the lack in performance, the videos show that the models exhibit some very interesting behavior. Both of the models trained on the two flavors of replay buffer seem to have found an optimal paddle location for winning. By placing the paddle a bit below halfway on the vertical axis, it seems that there's a good chance to win the game. Of course, when the ball goes elsewhere, the point is lost. Check them out in `recordings/`! They made me crack up.
+
+Here's some of the training curves that I saw:
+
+![Average Score over Training Episodes](plots/figures/AverageScores.png)
+
+More experimentation is necessary to figure out why `Pong-v4` was not as successful. My intuition is to say that repeating an action for 4 steps is not ideal in this environment. While it made sense in the `Pong-NoFrameskip-v4` case, the paces of these two environments differ greatly. 

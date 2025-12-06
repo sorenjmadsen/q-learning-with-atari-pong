@@ -7,9 +7,11 @@ def plot_scores(data_dict):
     for key, data in data_dict.items():
         plt.plot(data, label=key)
 
+    plt.hlines(y=19.5, xmin=0, xmax=2500, linestyles='dashed', colors=['black'], label="Target Performance")
     plt.legend()
     plt.xlabel('Episodes')
     plt.ylabel('Average Score')
+    plt.title("Average Score over Training Episodes")
     plt.savefig(op.join('plots', 'figures', 'AverageScores.png'))
 
 def process_log(logfile):
@@ -24,7 +26,7 @@ def process_log(logfile):
 
 if __name__ == "__main__":
     data_dict = {}
-    for file in glob(op.join('logs', '*.txt')):
+    for file in sorted(glob(op.join('logs', '*.txt'))):
         with open(file, 'r') as f:
             data = process_log(f)
             if len(data) > 0:

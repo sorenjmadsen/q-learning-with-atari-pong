@@ -60,7 +60,7 @@ Overall, I'm happy that all the models eventually learned to win. I would have l
 
 Here's some of the training curves that I saw:
 
-![Average Score over Training Episodes](plots/figures/AverageScores.png)
+![Average Score over Training Episodes](plots/figures/AverageScores-Default.png)
 
 ### Q-Value Inspection
 
@@ -68,4 +68,4 @@ During the training process, I decided to save the batch-average local and targe
 
 ![Average Batch Local Network Q-Value over Training Steps](plots/figures/Q-Values.png)
 
-More experimentation is necessary to figure out why `Pong-v4` was not as successful. My intuition is to say that repeating an action for 4 steps is not ideal in this environment. While it made sense in the `Pong-NoFrameskip-v4` case, the paces of these two environments differ greatly. 
+Given this overestimation, it seems to me that it's possible that the discount factor, `gamma`, is too high for the `Pong-v4` environment. In the case of `Pong-NoFrameskip-v4`, `gamma` set to `0.99` made sense given that a reward typically manifests every 60-120 steps. Therefore, if a reward in `Pong-v4` comes every 30-60 steps, then the discount factor must be reduced in order to prevent overestimation. In addition, a `batch_size` of 32 may be too large given that each batch may have a more diverse sampling of the environment. For these reason, I have started retraining the models on `Pong-v4` with a `gamma=0.97` and `batch_size=16`. 

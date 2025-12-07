@@ -71,3 +71,7 @@ During the training process, I decided to save the batch-average local and targe
 Given this overestimation, it seems to me that it's possible that the discount factor, `gamma`, is too high for the `Pong-v4` environment. In the case of `Pong-NoFrameskip-v4`, `gamma` set to `0.99` made sense given that a reward typically manifests every 60-120 steps. Therefore, if a reward in `Pong-v4` comes every 30-60 steps, then the discount factor must be reduced in order to prevent overestimation. In addition, a `batch_size` of 32 may be too large given that each batch may have a more diverse sampling of the environment. For these reason, I have started retraining the models on `Pong-v4` with a `gamma=0.97` and `batch_size=16`. So far, the maximum average score has increased about 50% from 10 to 15 with the hyperparameter adjustment. 
 
 ![Average Score over Training Episodes](plots/figures/AverageScores-Pong-v4.png)
+
+Additionally, the overestimation phenomena has seemed to go away. Here's a quick screenshot from training plots on Weights and Biases.
+
+![Batchwise Q-Values over Training Steps](plots/figures/Intermediate-Q-Values.png)

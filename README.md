@@ -72,6 +72,6 @@ Given this overestimation, it seems to me that it's possible that the discount f
 
 ![Average Score over Training Episodes](plots/figures/AverageScores-Pong-v4.png)
 
-Additionally, the overestimation phenomena has seemed to go away. Here's a quick screenshot from training plots on Weights and Biases.
+Additionally, the overestimation phenomena has seemed to go away. Here's a quick screenshot from training plots on Weights and Biases. The purple line denotes the training run with the adjusted hyperparameters. Sorry for the lack of axis titles! I will fix this and post new results when training is done.
 
 ![Batchwise Q-Values over Training Steps](plots/figures/Intermediate-Q-Values.png)

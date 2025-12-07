@@ -27,6 +27,8 @@ def process_log(logfile):
 if __name__ == "__main__":
     data_dict = {}
     for file in sorted(glob(op.join('logs', '*.txt'))):
+        if 'NoFrame' in file:
+            continue
         with open(file, 'r') as f:
             data = process_log(f)
             if len(data) > 0:

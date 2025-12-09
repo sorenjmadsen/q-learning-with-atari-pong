@@ -72,4 +72,4 @@ Given this overestimation, it seems to me that it's possible that the discount f
 
 ![Average Score over Training Episodes](plots/figures/AverageScores-Pong-v4.png)
 
-Additionally, the overestimation phenomena has seemed to go away. Weights and Biases is having API issues at the time of writing this. When it omes back up, I'll add some more figures.
+Additionally, the overestimation phenomena has seemed to go away. Weights and Biases is having API issues at the time of writing this. When it comes back up, I'll add some more figures.
